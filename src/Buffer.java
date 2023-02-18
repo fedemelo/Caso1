@@ -3,13 +3,9 @@ import java.util.LinkedList;
 
 public class Buffer {
 
-    // Buffer's number
-    private int number;
-
-    // Buffer's capacity
     private int capacity;
-
     private String name;
+    private boolean isFinal;
 
     // Queue of Products stored in buffer
     private Queue<Product> products = new LinkedList<Product>();
@@ -20,9 +16,9 @@ public class Buffer {
             throw new IllegalArgumentException(
                     "El tercer buffer tiene capacidad inifinita, no ponga capacidad en el constructor");
         }
-        this.number = number;
         this.capacity = capacity;
         this.name = "Buffer " + number;
+        this.isFinal = false;
     }
 
     // Final buffer: number 3
@@ -30,14 +26,13 @@ public class Buffer {
         if (number != 3) {
             throw new IllegalArgumentException("El buffer debe crearse con capacidad o ser el tercer buffer");
         }
-        this.number = number;
         this.name = "Buffer " + number + "(final)";
+        this.isFinal = true;
     }
 
     public synchronized boolean isFull() {
-        if (number == 3) {
+        if (isFinal)
             return false;
-        }
         return this.products.size() == this.capacity;
     }
 
@@ -45,7 +40,8 @@ public class Buffer {
         return this.products.size() == 0;
     }
 
-    public synchronized Product give() {
+    public synchronized Product send() {
+
         while (isEmpty()) {
             try {
                 wait();
@@ -53,13 +49,18 @@ public class Buffer {
                 e.printStackTrace();
             }
         }
-        Product send = products.remove();
-        notifyAll(); 
-        System.out.println("Se envió el producto " + send.getId() + " del " + this.name + ".");
-        return send;
+
+        Product sentProduct = products.remove();
+        notifyAll();
+
+        // System.out.println(String.format("Se envió %s de %s.", sentProduct.getName(),
+        // this.name));
+
+        return sentProduct;
     }
 
     public synchronized void receive(Product product) {
+
         while (isFull()) {
             try {
                 wait();
@@ -67,8 +68,12 @@ public class Buffer {
                 e.printStackTrace();
             }
         }
+
         products.add(product);
-        System.out.println("Se dejó el producto " + product.getId() + " en el " + this.name + ".");
+
+        // System.out.println(String.format("Se recibió %s en %s.", product.getName(),
+        // this.name));
+
         notifyAll();
     }
 

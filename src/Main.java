@@ -29,7 +29,7 @@ public class Main {
 
         // Los buzones y el objeto identificador serán creados en el programa principal.
         bufferSize = Integer
-                .parseInt(input("Ingrese el tamaño de los primeros 2 buffers.\n> "));
+                .parseInt(input("\nIngrese el tamaño de los primeros 2 buffers.\n> "));
         System.out.println("Los buffers 1 y 2 tendrán tamaño de " + bufferSize + "; el 3 será ilimitado.\n");
         Buffer buffer1 = new Buffer(1, bufferSize);
         Buffer buffer2 = new Buffer(2, bufferSize);
@@ -53,8 +53,19 @@ public class Main {
          */
         new Stage(2, nProcesses, nProducts, buffer1, buffer2);
         new Stage(3, nProcesses, nProducts, buffer2, finalBuffer);
-        // new Process("rojo", nProducts, finalBuffer);
 
+        /*
+         * El proceso rojo es el encargado de terminar la producción. Se encarga de
+         * recoger los productos terminados y de imprimirlos en orden.
+         */
+        // Seleep thread for two seconds
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Process finalProcess = new Process("rojo", nProcesses, nProducts, finalBuffer);
+        finalProcess.start();
     }
 
 }

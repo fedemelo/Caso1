@@ -17,4 +17,8 @@ public class Product {
     public void setId(Integer id) {
         this.id = id;
     }
+
+    public String getName() {
+        return String.format("Producto %s (%s)", id, color);
+    }
 }
