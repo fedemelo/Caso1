@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Process extends Thread {
@@ -13,6 +14,8 @@ public class Process extends Thread {
     private Buffer sendingBuffer;
     private Buffer receivingBuffer;
     private String name;
+
+    private static CyclicBarrier barrier;
 
     // Stage 1: No receiving buffer
     public Process(Integer nStage, String color, Integer nProducts,
@@ -102,8 +105,12 @@ public class Process extends Thread {
             receivingBuffer.receive(product);
         }
 
-        // if (nStage == 3)
-        // barrera.await();
+        if (nStage == 3)
+            try {
+                barrier.await();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
     }
 
@@ -141,6 +148,13 @@ public class Process extends Thread {
                 Thread.yield();
             receivingBuffer.receive(product);
         }
+
+        if (nStage == 3)
+            try {
+                barrier.await();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
     }
 
     private void aMimir() {
@@ -152,8 +166,6 @@ public class Process extends Thread {
     }
 
     private void redProcess() {
-
-        // TODO: barrera!
 
         List<Product> products = new ArrayList<Product>();
         for (int i = 0; i < nProducts * nProcesses; i++)
@@ -171,5 +183,13 @@ public class Process extends Thread {
             System.out.println(product.getName());
         }
 
+    }
+
+    public static CyclicBarrier getBarrier() {
+        return barrier;
+    }
+
+    public static void setBarrier(CyclicBarrier barrier) {
+        Process.barrier = barrier;
     }
 }

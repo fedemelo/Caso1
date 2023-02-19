@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.concurrent.CyclicBarrier;
 
 public class Main {
 
@@ -35,11 +36,7 @@ public class Main {
         Buffer buffer2 = new Buffer(2, bufferSize);
         Buffer finalBuffer = new Buffer(3);
 
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        Process.setBarrier(new CyclicBarrier(nProcesses+1));
 
         /*
          * Stage 1: En la primera etapa se crea el producto y se le asigna un número
@@ -58,10 +55,9 @@ public class Main {
          * El proceso rojo es el encargado de terminar la producción. Se encarga de
          * recoger los productos terminados y de imprimirlos en orden.
          */
-        // Seleep thread for two seconds
         try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
+            Process.getBarrier().await();
+        } catch (Exception e) {
             e.printStackTrace();
         }
         Process finalProcess = new Process("rojo", nProcesses, nProducts, finalBuffer);
