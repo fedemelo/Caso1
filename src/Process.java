@@ -115,8 +115,8 @@ public class Process extends Thread {
 
             aMimir();
 
-            String msg = String.format("%s recibió %s de %s y lo transformó%s.", this.name, product.getName(),
-                    sendingBuffer.getName(), (nStage == 3 ? " nuevamente" : ""));
+            String msg = String.format("%s creó %s y lo envía a %s.", this.name, product.getName(),
+                    receivingBuffer.getName());
             System.out.println(msg);
 
             while (receivingBuffer.isFull())
@@ -133,8 +133,8 @@ public class Process extends Thread {
 
             aMimir();
 
-            String msg = String.format("%s recibió %s de %s y lo transformó.", this.name, product.getName(),
-                    sendingBuffer.getName());
+            String msg = String.format("%s recibió %s de %s y lo transformó%s.", this.name, product.getName(),
+                    sendingBuffer.getName(), (nStage == 3 ? " nuevamente" : ""));
             System.out.println(msg);
 
             while (receivingBuffer.isFull())
