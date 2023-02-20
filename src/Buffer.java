@@ -8,7 +8,9 @@ public class Buffer {
     private boolean isFinal;
 
     // Queue of Products stored in buffer
-    private Queue<Product> products = new LinkedList<Product>();
+    private Queue<Product> blueProducts = new LinkedList<Product>();
+    private Queue<Product> orangeProducts = new LinkedList<Product>();
+    private Queue<Product> finalProducts = new LinkedList<Product>();
 
     // Intermidiate buffer: number 1 or 2
     public Buffer(Integer number, Integer capacity) {
@@ -30,19 +32,31 @@ public class Buffer {
         this.isFinal = true;
     }
 
-    public synchronized boolean isFull() {
+    private synchronized boolean blueIsFull() {
         if (isFinal)
             return false;
-        return this.products.size() == this.capacity;
+        return this.blueProducts.size() == this.capacity;
     }
 
-    public synchronized boolean isEmpty() {
-        return this.products.size() == 0;
+    private synchronized boolean blueIsEmpty() {
+        return this.blueProducts.size() == 0;
     }
 
-    public synchronized Product send() {
+    public synchronized boolean orangeIsFull() {
+        if (isFinal)
+            return false;
+        return this.orangeProducts.size() == this.capacity;
+    }
 
-        while (isEmpty()) {
+    public synchronized boolean orangeIsEmpty() {
+        return this.orangeProducts.size() == 0;
+    }
+
+
+    // Send blue product
+    public synchronized Product sendBlue() {
+
+        while (blueIsEmpty()) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -50,7 +64,8 @@ public class Buffer {
             }
         }
 
-        Product sentProduct = products.remove();
+        Product sentProduct = blueProducts.remove();
+
         notifyAll();
 
         // System.out.println(String.format("Se envió %s de %s.", sentProduct.getName(),
@@ -59,9 +74,9 @@ public class Buffer {
         return sentProduct;
     }
 
-    public synchronized void receive(Product product) {
+    public synchronized void receiveBlue(Product product) {
 
-        while (isFull()) {
+        while (blueIsFull()) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -69,7 +84,10 @@ public class Buffer {
             }
         }
 
-        products.add(product);
+        if (!isFinal)
+            blueProducts.add(product);
+        else
+            finalProducts.add(product);
 
         // System.out.println(String.format("Se recibió %s en %s.", product.getName(),
         // this.name));
@@ -77,8 +95,31 @@ public class Buffer {
         notifyAll();
     }
 
+    // Send orange product
+    public synchronized Product sendOrange() {
+
+        Product sentProduct = orangeProducts.remove();
+        return sentProduct;
+    }
+
+    public synchronized void receiveOrange(Product product) {
+        if (!isFinal)
+            orangeProducts.add(product);
+        else
+            finalProducts.add(product);
+    }
+
     public String getName() {
         return name;
+    }
+
+    public synchronized Product giveProduct(Integer id) {
+        for (Product product : finalProducts) {
+            if (product.getId() == id) {
+                return product;
+            }
+        }
+        return null;
     }
 
 }

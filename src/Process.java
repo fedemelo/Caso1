@@ -2,7 +2,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Process extends Thread {
@@ -14,8 +13,6 @@ public class Process extends Thread {
     private Buffer sendingBuffer;
     private Buffer receivingBuffer;
     private String name;
-
-    private static CyclicBarrier barrier;
 
     // Stage 1: No receiving buffer
     public Process(Integer nStage, String color, Integer nProducts,
@@ -88,13 +85,13 @@ public class Process extends Thread {
                     receivingBuffer.getName());
             System.out.println(msg);
 
-            receivingBuffer.receive(product);
+            receivingBuffer.receiveBlue(product);
         }
     }
 
     private void stage2or3BlueProcess() {
         for (int i = 0; i < nProducts; i++) {
-            Product product = sendingBuffer.send();
+            Product product = sendingBuffer.sendBlue();
 
             aMimir();
 
@@ -102,16 +99,8 @@ public class Process extends Thread {
                     sendingBuffer.getName(), (nStage == 3 ? " nuevamente" : ""));
             System.out.println(msg);
 
-            receivingBuffer.receive(product);
+            receivingBuffer.receiveBlue(product);
         }
-
-        if (nStage == 3)
-            try {
-                barrier.await();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
     }
 
     // Orange
@@ -126,17 +115,24 @@ public class Process extends Thread {
                     receivingBuffer.getName());
             System.out.println(msg);
 
-            while (receivingBuffer.isFull())
+            while (receivingBuffer.orangeIsFull())
                 Thread.yield();
-            receivingBuffer.receive(product);
+            receivingBuffer.receiveOrange(product);
+
+            synchronized (receivingBuffer) {
+                receivingBuffer.notifyAll();
+            }
         }
     }
 
     private void stage2or3OrangeProcess() {
         for (int i = 0; i < nProducts; i++) {
-            while (sendingBuffer.isEmpty())
+            while (sendingBuffer.orangeIsEmpty())
                 Thread.yield();
-            Product product = sendingBuffer.send();
+            Product product = sendingBuffer.sendOrange();
+            synchronized (sendingBuffer) {
+                sendingBuffer.notifyAll();
+            }
 
             aMimir();
 
@@ -144,17 +140,13 @@ public class Process extends Thread {
                     sendingBuffer.getName(), (nStage == 3 ? " nuevamente" : ""));
             System.out.println(msg);
 
-            while (receivingBuffer.isFull())
+            while (receivingBuffer.orangeIsFull())
                 Thread.yield();
-            receivingBuffer.receive(product);
-        }
-
-        if (nStage == 3)
-            try {
-                barrier.await();
-            } catch (Exception e) {
-                e.printStackTrace();
+            receivingBuffer.receiveOrange(product);
+            synchronized (receivingBuffer) {
+                receivingBuffer.notifyAll();
             }
+        }
     }
 
     private void aMimir() {
@@ -167,29 +159,17 @@ public class Process extends Thread {
 
     private void redProcess() {
 
-        List<Product> products = new ArrayList<Product>();
-        for (int i = 0; i < nProducts * nProcesses; i++)
-            products.add(sendingBuffer.send());
+        Integer i = 0;
 
-        Collections.sort(products, new Comparator<Product>() {
-            @Override
-            public int compare(Product p1, Product p2) {
-                return p1.getId().compareTo(p2.getId());
+        while (i < nProcesses * nProducts) {
+            Product product = sendingBuffer.giveProduct(i);
+            while (product == null) {
+                Thread.yield();
+                product = sendingBuffer.giveProduct(i);
             }
-        });
-
-        System.out.println("\nSe imprimen los productos en orden:");
-        for (Product product : products) {
             System.out.println(product.getName());
+            i++;
         }
-
     }
 
-    public static CyclicBarrier getBarrier() {
-        return barrier;
-    }
-
-    public static void setBarrier(CyclicBarrier barrier) {
-        Process.barrier = barrier;
-    }
 }
