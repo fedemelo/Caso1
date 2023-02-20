@@ -1,7 +1,3 @@
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Process extends Thread {
@@ -73,7 +69,7 @@ public class Process extends Thread {
         }
     }
 
-    // Blue
+    // Blue: Los procesos azules envían y reciben de manera pasiva
     private void stage1BlueProcess() {
         for (int i = 0; i < nProducts; i++) {
             Product product = new Product(color);
@@ -103,7 +99,7 @@ public class Process extends Thread {
         }
     }
 
-    // Orange
+    // Orange: Los procesos naranjas envían de y reciben manera semiactiva
     private void stage1OrangeProcess() {
         for (int i = 0; i < nProducts; i++) {
             Product product = new Product(color);
@@ -157,6 +153,7 @@ public class Process extends Thread {
         }
     }
 
+    // Red: El proceso rojo recibe de manera activa
     private void redProcess() {
 
         Integer i = 0;

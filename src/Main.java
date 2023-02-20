@@ -48,13 +48,6 @@ public class Main {
         new Stage(2, nProcesses, nProducts, buffer1, buffer2);
         new Stage(3, nProcesses, nProducts, buffer2, finalBuffer);
 
-        // Sleep thread for two seconds
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         /*
          * El proceso rojo es el encargado de terminar la producción. Se encarga de
          * recoger los productos terminados y de imprimirlos en orden.
