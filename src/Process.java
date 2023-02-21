@@ -44,7 +44,7 @@ public class Process extends Thread {
         this.nProducts = nProducts;
         this.nProcesses = nProcesses;
         this.sendingBuffer = sendingBuffer;
-        this.name = "Proceso " + color + " (final) ";
+        this.name = "Proceso " + color + " (final)";
     }
 
     public void run() {
@@ -69,17 +69,17 @@ public class Process extends Thread {
         }
     }
 
-    // Blue: Los procesos azules envían y reciben de manera pasiva
+    // Blue: Los procesos azules envión y reciben de manera pasiva
     private void stage1BlueProcess() {
         for (int i = 0; i < nProducts; i++) {
             Product product = new Product(color);
             IdProvider.getInstance().giveId(product);
 
-            aMimir();
+            Integer time = aMimir();
 
-            String msg = String.format("%s creó %s y lo envía a %s.", this.name, product.getName(),
+            String msg = String.format("%s creó (%s ms) %s. Lo envió a %s. ", this.name, time, product.getName(),
                     receivingBuffer.getName());
-            System.out.println(msg);
+            product.addToMessage(msg);
 
             receivingBuffer.receiveBlue(product);
         }
@@ -89,27 +89,27 @@ public class Process extends Thread {
         for (int i = 0; i < nProducts; i++) {
             Product product = sendingBuffer.sendBlue();
 
-            aMimir();
+            Integer time = aMimir();
 
-            String msg = String.format("%s recibió %s de %s y lo transformó%s.", this.name, product.getName(),
-                    sendingBuffer.getName(), (nStage == 3 ? " nuevamente" : ""));
-            System.out.println(msg);
+            String msg = String.format("%s lo recibió de %s y lo transformó (%s ms)%s. Lo envió a %s. ", this.name,
+                    sendingBuffer.getName(), time, (nStage == 3 ? " nuevamente" : ""), receivingBuffer.getName());
+            product.addToMessage(msg);
 
             receivingBuffer.receiveBlue(product);
         }
     }
 
-    // Orange: Los procesos naranjas envían de y reciben manera semiactiva
+    // Orange: Los procesos naranjas envión de y reciben manera semiactiva
     private void stage1OrangeProcess() {
         for (int i = 0; i < nProducts; i++) {
             Product product = new Product(color);
             IdProvider.getInstance().giveId(product);
 
-            aMimir();
+            Integer time = aMimir();
 
-            String msg = String.format("%s creó %s y lo envía a %s.", this.name, product.getName(),
+            String msg = String.format("%s creó (%s ms) %s. Lo envió a %s. ", this.name, time, product.getName(),
                     receivingBuffer.getName());
-            System.out.println(msg);
+            product.addToMessage(msg);
 
             while (receivingBuffer.orangeIsFull())
                 Thread.yield();
@@ -130,11 +130,11 @@ public class Process extends Thread {
                 sendingBuffer.notifyAll();
             }
 
-            aMimir();
+            Integer time = aMimir();
 
-            String msg = String.format("%s recibió %s de %s y lo transformó%s.", this.name, product.getName(),
-                    sendingBuffer.getName(), (nStage == 3 ? " nuevamente" : ""));
-            System.out.println(msg);
+            String msg = String.format("%s lo recibió de %s y lo transformó (%s ms)%s. Lo envió a %s. ", this.name,
+                    sendingBuffer.getName(), time, (nStage == 3 ? " nuevamente" : ""), receivingBuffer.getName());
+            product.addToMessage(msg);
 
             while (receivingBuffer.orangeIsFull())
                 Thread.yield();
@@ -145,11 +145,14 @@ public class Process extends Thread {
         }
     }
 
-    private void aMimir() {
+    private Integer aMimir() {
         try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(50, 500 + 1));
+            Integer time = ThreadLocalRandom.current().nextInt(50, 500 + 1);
+            Thread.sleep(time);
+            return time;
         } catch (InterruptedException e) {
             e.printStackTrace();
+            return 0;
         }
     }
 
@@ -161,10 +164,11 @@ public class Process extends Thread {
         while (i < nProcesses * nProducts) {
             Product product = sendingBuffer.giveProduct(i);
             while (product == null) {
-                Thread.yield();
                 product = sendingBuffer.giveProduct(i);
             }
-            System.out.println(product.getName());
+            product.addToMessage(
+                    String.format("%s lo recibió de %s y lo imprime.\n", this.name, sendingBuffer.getName()));
+            System.out.println(product.getMessage());
             i++;
         }
     }

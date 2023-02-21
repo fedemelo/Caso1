@@ -1,9 +1,11 @@
 public class Product {
     private String color;
     private Integer id;
+    private String message;
 
     public Product(String color) {
         this.color = color;
+        this.message = "";
     }
 
     public Integer getId() {
@@ -21,4 +23,13 @@ public class Product {
     public String getName() {
         return String.format("Producto %s (%s)", id, color);
     }
+
+    public String addToMessage(String message) {
+        return this.message += message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
 }

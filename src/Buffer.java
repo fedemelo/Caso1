@@ -28,7 +28,7 @@ public class Buffer {
         if (number != 3) {
             throw new IllegalArgumentException("El buffer debe crearse con capacidad o ser el tercer buffer");
         }
-        this.name = "Buffer " + number + "(final)";
+        this.name = "Buffer " + number + " (último)";
         this.isFinal = true;
     }
 
